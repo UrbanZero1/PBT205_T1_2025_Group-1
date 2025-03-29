@@ -2,17 +2,24 @@
 using System.Text;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using System.Threading.Tasks;
 
 
 class Program
 {
     static async Task Main()
     {
-        await SendMessageAsync();
-        await ReceiveMessagesAsync();
+        Console.Write("Enter your username: "); 
+        string username = Console.ReadLine();   // login 
+
+        Console.WriteLine("Enter your messages below. Type 'exit' to quit.");
+        var sendTask = SendMessageAsync();
+        var receiveTask = ReceiveMessagesAsync();
+
+        await Task.WhenAll(sendTask, receiveTask);
     }
 
-    static async Task SendMessageAsync() // add custom message
+    static async Task SendMessageAsync() // Sending messages
     {
         var factory = new ConnectionFactory { HostName = "localhost" };
         using var connection = await factory.CreateConnectionAsync();
@@ -25,16 +32,20 @@ class Program
              autoDelete: false,
              arguments: null);
 
-        const string message = "Hello World!";
-        var body = Encoding.UTF8.GetBytes(message);
+        while (true)
+        {
+            Console.Write("You: ");
+            string message = Console.ReadLine();
 
-        await channel.BasicPublishAsync(exchange: string.Empty, routingKey: "Chat Room", body: body);
-        Console.WriteLine($" [x] Sent {message}");
+            if (message.ToLower() == "exit")
+                break;
 
-        Console.WriteLine(" Press [enter] to exit.");
-        Console.ReadLine();
+            var body = Encoding.UTF8.GetBytes(message);
+            await channel.BasicPublishAsync(exchange: string.Empty, routingKey: "Chat Room", body: body);
+            Console.WriteLine(" [x] Message sent");
+        }
     }
-    static async Task ReceiveMessagesAsync() 
+    static async Task ReceiveMessagesAsync() // recieving messages
     {
         var factory = new ConnectionFactory { HostName = "localhost" };
         using var connection = await factory.CreateConnectionAsync();
@@ -50,18 +61,17 @@ class Program
         Console.WriteLine(" [*] Waiting for messages.");
 
         var consumer = new AsyncEventingBasicConsumer(channel);
-        consumer.ReceivedAsync += (model, ea) =>
+        consumer.ReceivedAsync += async (model, ea) =>
         {
             var body = ea.Body.ToArray();
             var message = Encoding.UTF8.GetString(body);
-            Console.WriteLine($" [x] Received {message}");
-            return Task.CompletedTask;
+            Console.WriteLine($"\n[x] Received: {message}\nYou: ");
+            await Task.CompletedTask;
         };
 
         await channel.BasicConsumeAsync("Chat Room", autoAck: true, consumer: consumer);
 
-        Console.WriteLine(" Press [enter] to exit.");
-        Console.ReadLine();
+        await Task.Delay(-1);
     }
-    //add login
+    
 }
