@@ -33,7 +33,14 @@ consumer.ReceivedAsync += (model, ea) =>
 {
     var body = ea.Body.ToArray();
     var message = Encoding.UTF8.GetString(body);
-    Console.WriteLine($" [x] {name} has met {message}");
+    if (message == "!")
+    {
+        Console.WriteLine($" [x] {name} does not exist in the system");
+    }
+    else
+    {
+        Console.WriteLine($" [x] {name} has met {message}");
+    }
     Environment.Exit(0);
     return Task.CompletedTask;
 };

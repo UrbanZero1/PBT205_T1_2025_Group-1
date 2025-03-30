@@ -108,9 +108,19 @@ queryConsumer.ReceivedAsync += async (modal, ea) =>
             exchange: "query-response",
             routingKey: name,
             body: responseBody
-            );
-        
+        );
+
         Console.WriteLine(" [x] Sent query response.");
+    }
+    else 
+    {
+        Console.WriteLine($" [x] {name} does not exist.");
+        var responseBody = Encoding.UTF8.GetBytes("!");
+        await channel.BasicPublishAsync(
+            exchange: "query-response",
+            routingKey: name,
+            body: responseBody
+        );
     }
     await Task.CompletedTask;
 };
