@@ -316,7 +316,7 @@ class Board
         if (personIndex == -1)
         {
             Console.WriteLine($"Person {name} does not exist.");
-            return null;
+            return null!;
         }
         
         Person person = people[personIndex];
