@@ -5,9 +5,9 @@ const int XMAX = 10;
 const int YMAX = 10;
 
 // Checks if the command is used correctly
-if (args.Length < 3)
+if (args.Length < 3 || args.Length > 4)
 {
-    Console.Error.WriteLine("Usage: command [hostname] [name] [delay between moves in ms]");
+    Console.Error.WriteLine("Usage: command [hostname] [name] [delay between moves in ms] [(optional)infected: true/false]");
     Console.WriteLine(" Press [enter] to exit.");
     Console.ReadLine();
     Environment.ExitCode = 1;
@@ -26,6 +26,20 @@ if (int.TryParse(args[2], out delay) == false)
     Console.ReadLine();
     Environment.ExitCode = 1;
     return;
+}
+
+bool infected = false;
+
+if (args.Length == 4)
+{
+    if (bool.TryParse(args[3], out infected) == false)
+    {
+        Console.Error.WriteLine("Invalid infected value.");
+        Console.WriteLine(" Press [enter] to exit.");
+        Console.ReadLine();
+        Environment.ExitCode = 1;
+        return;
+    }
 }
 
 // Checks if the delay is greater than 0
@@ -49,7 +63,7 @@ Random random = new Random();
 int xPos = random.Next(XMAX);
 int yPos = random.Next(YMAX);
 
-var routingKey = $"new.person.{xPos}.{yPos}";
+var routingKey = $"new.person.{xPos}.{yPos}.{(infected?"true":"false")}";
 var message = name;
 var body = Encoding.UTF8.GetBytes(message);
 
@@ -88,5 +102,6 @@ var loopTask = Task.Run(async () =>
 });
 
 Console.ReadLine();
+
 
 
